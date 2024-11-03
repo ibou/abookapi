@@ -2,7 +2,8 @@ services:
   php:
     image: ${IMAGES_PREFIX:-}app-php
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     restart: unless-stopped
     environment:
       PWA_UPSTREAM: pwa:3000
@@ -12,7 +13,7 @@ services:
       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       TRUSTED_PROXIES: ${TRUSTED_PROXIES:-127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
       TRUSTED_HOSTS: ^${SERVER_NAME:-example\.com|localhost}|php$$
-      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-16}&charset=${POSTGRES_CHARSET:-utf8}
+      #DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:${POSTGRES_PORT:-5433}/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-16}&charset=${POSTGRES_CHARSET:-utf8}
       MERCURE_URL: ${CADDY_MERCURE_URL:-http://php/.well-known/mercure}
       MERCURE_PUBLIC_URL: https://${SERVER_NAME:-localhost}/.well-known/mercure
       MERCURE_JWT_SECRET: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
@@ -31,6 +32,10 @@ services:
       - target: 443
         published: ${HTTP3_PORT:-443}
         protocol: udp
+    networks:
+      demoapiplatform:
+        aliases:
+          - php
 
   pwa:
     image: ${IMAGES_PREFIX:-}app-pwa
@@ -43,6 +48,11 @@ services:
       AUTH_SECRET: ${AUTH_SECRET:-!ChangeThisNextAuthSecret!}
       AUTH_URL: ${AUTH_URL:-https://localhost/api/auth}
       NEXT_SHARP_PATH: /srv/app/node_modules/sharp
+    networks:
+      demoapiplatform:
+        aliases:
+          - pwa
+
 
 ###> doctrine/doctrine-bundle ###
   database:
@@ -56,6 +66,15 @@ services:
       - db_data:/var/lib/postgresql/data
       # you may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
       # - ./api/docker/db/data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      demoapiplatform:
+        aliases:
+          - database
 ###< doctrine/doctrine-bundle ###
 
 # Mercure is installed as a Caddy module, prevent the Flex recipe from installing another service
@@ -71,6 +90,10 @@ services:
       POSTGRES_USER: ${KEYCLOAK_POSTGRES_USER:-keycloak}
     volumes:
       - keycloak_db_data:/var/lib/postgresql/data
+    networks:
+      demoapiplatform:
+        aliases:
+          - keycloak-database
 
   keycloak:
     image: app_keycloak
@@ -94,6 +117,11 @@ services:
       - target: 8080
         published: 8080
         protocol: tcp
+    networks:
+      demoapiplatform:
+        aliases:
+          - keycloak
+
 
 volumes:
   caddy_data:
@@ -104,3 +132,7 @@ volumes:
 ###> symfony/mercure-bundle ###
 ###< symfony/mercure-bundle ###
   keycloak_db_data:
+
+networks:
+  demoapiplatform:
+    driver: bridge

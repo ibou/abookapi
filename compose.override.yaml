@@ -21,6 +21,7 @@ services:
       - host.docker.internal:host-gateway
     tty: true
 
+
   pwa:
     build:
       context: ./pwa
@@ -38,9 +39,10 @@ services:
 ###> doctrine/doctrine-bundle ###
   database:
     ports:
-      - target: 5432
-        published: 5432
-        protocol: tcp
+      - "${POSTGRES_PORT:-5433}:5432"
+  keycloak-database:
+    ports:
+      - "${KEYCLOAK_POSTGRES_PORT:-5434}:5432"
 ###< doctrine/doctrine-bundle ###
 
 ###> symfony/mercure-bundle ###

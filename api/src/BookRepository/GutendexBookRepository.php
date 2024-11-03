@@ -34,7 +34,13 @@ final readonly class GutendexBookRepository implements RestrictedBookRepositoryI
         $data = $this->decoder->decode($response->getContent(), 'json');
         $book->title = $data['title'];
         $book->author = $data['authors'][0]['name'] ?? null;
+/*
+        $firstBook = $data['results'][0];
 
+        $book->title = $firstBook['title'];
+
+        $book->author = $firstBook['authors'][0]['name'].' (Gutemdex) ' ?? null;
+*/
         return $book;
     }
 }

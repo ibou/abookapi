@@ -20,6 +20,7 @@ use App\Enum\BookCondition;
 use App\Repository\BookRepository;
 use App\State\Processor\BookPersistProcessor;
 use App\State\Processor\BookRemoveProcessor;
+use App\State\Provider\BookStateProvider;
 use App\Validator\BookUrl;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -97,7 +98,8 @@ use Symfony\Component\Validator\Constraints as Assert;
             '@=iri(object, ' . UrlGeneratorInterface::ABS_URL . ', get_operation(object, "/admin/books/{id}{._format}"))',
             '@=iri(object, ' . UrlGeneratorInterface::ABS_URL . ', get_operation(object, "/books/{id}{._format}"))',
         ],
-    ]
+    ],
+    provider: BookStateProvider::class,
 )]
 #[ORM\Entity(repositoryClass: BookRepository::class)]
 #[UniqueEntity(fields: ['book'])]
@@ -133,8 +135,8 @@ class Book
     #[ApiFilter(OrderFilter::class)]
     #[ApiFilter(SearchFilter::class, strategy: 'i' . SearchFilterInterface::STRATEGY_PARTIAL)]
     #[ApiProperty(
-        iris: ['https://schema.org/name'],
-        example: 'Hyperion'
+        example: 'Hyperion',
+        iris: ['https://schema.org/name']
     )]
     #[Groups(groups: ['Book:read', 'Book:read:admin', 'Bookmark:read', 'Review:read:admin'])]
     #[ORM\Column(type: Types::TEXT)]
@@ -145,8 +147,8 @@ class Book
      */
     #[ApiFilter(SearchFilter::class, strategy: 'i' . SearchFilterInterface::STRATEGY_PARTIAL)]
     #[ApiProperty(
-        types: ['https://schema.org/author'],
-        example: 'Dan Simmons'
+        example: 'Dan Simmons',
+        types: ['https://schema.org/author']
     )]
     #[Groups(groups: ['Book:read', 'Book:read:admin', 'Bookmark:read', 'Review:read:admin'])]
     #[ORM\Column(nullable: true)]
@@ -157,8 +159,8 @@ class Book
      */
     #[ApiFilter(SearchFilter::class, strategy: SearchFilterInterface::STRATEGY_EXACT)]
     #[ApiProperty(
-        types: ['https://schema.org/OfferItemCondition'],
-        example: BookCondition::NewCondition->value
+        example: BookCondition::NewCondition->value,
+        types: ['https://schema.org/OfferItemCondition']
     )]
     #[Assert\NotNull]
     #[Groups(groups: ['Book:read', 'Book:read:admin', 'Bookmark:read', 'Book:write'])]
@@ -192,6 +194,10 @@ class Book
     )]
     #[Groups(groups: ['Book:read', 'Book:read:admin', 'Bookmark:read'])]
     public ?int $rating = null;
+
+    #[Groups(groups: ['custom:output'])]
+
+    public bool $isPublished = true;
 
     public function __construct()
     {

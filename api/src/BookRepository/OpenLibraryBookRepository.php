@@ -31,14 +31,16 @@ final readonly class OpenLibraryBookRepository implements RestrictedBookReposito
 
         $book = new Book();
 
+
         $data = $this->decoder->decode($response->getContent(), 'json');
         $book->title = $data['title'];
-
+        $book->book = $url;
         $book->author = null;
         if (isset($data['authors'][0]['key'])) {
             $author = $this->openLibraryClient->request('GET', $data['authors'][0]['key'] . '.json', $options);
+            $author = $this->decoder->decode($author->getContent(), 'json');
             if (isset($author['name'])) {
-                $book->author = $author['name'];
+                $book->author = $author['name'].' (OpenLibrary)';
             }
         }
 

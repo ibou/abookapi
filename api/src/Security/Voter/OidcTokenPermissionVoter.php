@@ -45,7 +45,6 @@ final class OidcTokenPermissionVoter extends OidcVoter
         if (\is_object($subject)) {
             $subject = $this->iriConverter->getIriFromResource($subject);
         }
-
         if (!\is_string($subject)) {
             throw new \InvalidArgumentException(\sprintf('Invalid subject type, expected "string" or "object", got "%s".', get_debug_type($subject)));
         }

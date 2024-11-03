@@ -39,7 +39,6 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 #[ApiResource(
     types: ['https://schema.org/Review'],
-    order: ['publishedAt' => 'DESC'],
     operations: [
         new GetCollection(
             uriTemplate: '/admin/reviews{._format}',
@@ -76,7 +75,6 @@ use Symfony\Component\Validator\Constraints as Assert;
         AbstractNormalizer::GROUPS => ['Review:write', 'Review:write:admin'],
     ],
     collectDenormalizationErrors: true,
-    security: 'is_granted("OIDC_ADMIN")',
     mercure: [
         'topics' => [
             '@=iri(object, ' . UrlGeneratorInterface::ABS_URL . ', get_operation(object, "/admin/reviews/{id}{._format}"))',
@@ -84,15 +82,13 @@ use Symfony\Component\Validator\Constraints as Assert;
             '@=iri(object, ' . UrlGeneratorInterface::ABS_URL . ', get_operation(object, "/books/{bookId}/reviews/{id}{._format}"))',
             '@=iri(object, ' . UrlGeneratorInterface::ABS_URL . ', get_operation(object, "/books/{bookId}/reviews{._format}"))',
         ],
-    ]
+    ],
+    order: ['publishedAt' => 'DESC'],
+    security: 'is_granted("OIDC_ADMIN")'
 )]
 #[ApiResource(
-    types: ['https://schema.org/Review'],
-    order: ['publishedAt' => 'DESC'],
     uriTemplate: '/books/{bookId}/reviews{._format}',
-    uriVariables: [
-        'bookId' => new Link(toProperty: 'book', fromClass: Book::class),
-    ],
+    types: ['https://schema.org/Review'],
     operations: [
         new GetCollection(
             itemUriTemplate: '/books/{bookId}/reviews/{id}{._format}',
@@ -107,10 +103,10 @@ use Symfony\Component\Validator\Constraints as Assert;
         ),
         new Post(
             security: 'is_granted("OIDC_USER")',
-            processor: ReviewPersistProcessor::class,
+            validationContext: [AbstractNormalizer::GROUPS => ['Default', 'Review:create']],
             provider: CreateProvider::class,
-            itemUriTemplate: '/books/{bookId}/reviews/{id}{._format}',
-            validationContext: [AbstractNormalizer::GROUPS => ['Default', 'Review:create']]
+            processor: ReviewPersistProcessor::class,
+            itemUriTemplate: '/books/{bookId}/reviews/{id}{._format}'
         ),
         new Patch(
             uriTemplate: '/books/{bookId}/reviews/{id}{._format}',
@@ -133,6 +129,9 @@ use Symfony\Component\Validator\Constraints as Assert;
             processor: ReviewRemoveProcessor::class
         ),
     ],
+    uriVariables: [
+        'bookId' => new Link(toProperty: 'book', fromClass: Book::class),
+    ],
     normalizationContext: [
         IriTransformerNormalizer::CONTEXT_KEY => [
             'book' => '/books/{id}{._format}',
@@ -152,7 +151,8 @@ use Symfony\Component\Validator\Constraints as Assert;
             '@=iri(object, ' . UrlGeneratorInterface::ABS_URL . ', get_operation(object, "/books/{bookId}/reviews/{id}{._format}"))',
             '@=iri(object, ' . UrlGeneratorInterface::ABS_URL . ', get_operation(object, "/books/{bookId}/reviews{._format}"))',
         ],
-    ]
+    ],
+    order: ['publishedAt' => 'DESC']
 )]
 #[ORM\Entity(repositoryClass: ReviewRepository::class)]
 #[ORM\UniqueConstraint(fields: ['user', 'book'])]

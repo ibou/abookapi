@@ -21,7 +21,7 @@ final class BookNormalizer implements NormalizerInterface, NormalizerAwareInterf
      */
     public function __construct(
         #[Autowire(service: ReviewRepository::class)]
-        private ObjectRepository $repository,
+        private readonly ObjectRepository $repository,
     ) {
     }
 
@@ -32,7 +32,11 @@ final class BookNormalizer implements NormalizerInterface, NormalizerAwareInterf
     {
         $object->rating = $this->repository->getAverageRating($object);
 
-        return $this->normalizer->normalize($object, $format, [self::class => true] + $context);
+        $data = $this->normalizer->normalize($object, $format, [self::class => true] + $context);
+        if(is_array($data)) {
+            //$data['publishedAt'] = date(\DateTime::RFC3339);
+        }
+        return $data;
     }
 
     public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool

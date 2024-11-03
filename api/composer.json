@@ -35,6 +35,7 @@
         "symfony/twig-bundle": "7.1.*",
         "symfony/uid": "7.1.*",
         "symfony/validator": "7.1.*",
+        "symfony/var-dumper": "^7.1",
         "symfony/yaml": "7.1.*",
         "web-token/jwt-bundle": "^4.0",
         "webonyx/graphql-php": "^15.8",
@@ -55,7 +56,6 @@
         "symfony/debug-bundle": "7.1.*",
         "symfony/maker-bundle": "^1.52",
         "symfony/stopwatch": "7.1.*",
-        "symfony/var-dumper": "7.1.*",
         "symfony/web-profiler-bundle": "7.1.*"
     },
     "config": {
